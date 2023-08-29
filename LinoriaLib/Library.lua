@@ -23,6 +23,12 @@ local Options = {};
 getgenv().Toggles = Toggles;
 getgenv().Options = Options;
 
+local function c3(hex)
+    hex = hex:gsub("#","")
+    local r, g, b = tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
+    return Color3.fromRGB(r,g,b)
+end
+
 local Library = {
     Registry = {};
     RegistryMap = {};
@@ -128,7 +134,6 @@ function Library:Create(Class, Properties)
     for Property, Value in next, Properties do
         _Instance[Property] = Value;
     end;
-
     return _Instance;
 end;
 
@@ -410,6 +415,7 @@ do
     local Funcs = {};
 
     function Funcs:AddColorPicker(Idx, Info)
+        local rdmode = false
         local ToggleLabel = self.TextLabel;
         -- local Container = self.Container;
 
@@ -441,8 +447,6 @@ do
             ZIndex = 6;
             Parent = ToggleLabel;
         });
-
-        -- Transparency image taken from https://github.com/matas3535/SplixPrivateDrawingLibrary/blob/main/Library.lua cus i'm lazy
         local CheckerFrame = Library:Create('ImageLabel', {
             BorderSizePixel = 0;
             Size = UDim2.new(0, 27, 0, 13);
@@ -791,6 +795,20 @@ do
                 Library:Notify('Copied RGB values to clipboard!', 2)
             end)
 
+            ContextMenu:AddOption('Nomal Mode', function()
+                pcall(function()
+                    rdmode = false
+                end)
+                Library:Notify("Changed Nomal Mode")
+            end)
+
+            ContextMenu:AddOption('Rainbow Mode', function()
+                pcall(function()
+                    rdmode = true
+                end)
+                Library:Notify("Changed Rainbow Mode")
+            end)
+
         end
 
         Library:AddToRegistry(PickerFrameInner, { BackgroundColor3 = 'BackgroundColor'; BorderColor3 = 'OutlineColor'; });
@@ -994,6 +1012,20 @@ do
 
         ColorPicker:Display();
         ColorPicker.DisplayFrame = DisplayFrame
+
+        print("Rainbow Mode: "..tostring(rdmode))
+
+        task.spawn(function()
+            while task.wait() do
+                print(rdmode)
+                if rdmode then
+                    local t = 2.5; 
+                    local hue = tick() % t / t
+                    local color = Color3.fromHSV(hue, 1, 1)
+                    ColorPicker:SetValueRGB(c3(color:ToHex()))
+                end
+            end
+        end)
 
         Options[Idx] = ColorPicker;
 
@@ -3632,5 +3664,4 @@ end;
 Players.PlayerAdded:Connect(OnPlayerChange);
 Players.PlayerRemoving:Connect(OnPlayerChange);
 
-getgenv().Library = Library
 return Library
