@@ -114,7 +114,7 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
 -- Interface Management
-local Rayfield = game:GetObjects("rbxassetid://10804731440")[1]
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/1stLocal/rbx_UILibs/main/RayField/UIObjects.rbxm',true))() --game:GetObjects("rbxassetid://10804731440")[1]
 
 Rayfield.Enabled = false
 
