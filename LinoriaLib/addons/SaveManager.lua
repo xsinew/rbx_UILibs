@@ -3,65 +3,48 @@ local httpService = game:GetService('HttpService')
 local SaveManager = {} do
 	SaveManager.Folder = 'LinoriaLibSettings'
 	SaveManager.Ignore = {}
+	
 	SaveManager.Parser = {
 		Toggle = {
 			Save = function(idx, object) 
-				return { type = 'Toggle', idx = idx, value = object.Value } 
+				return { type = 'Toggle', idx = idx, value = object:GetValue() } 
 			end,
 			Load = function(idx, data)
-				if Toggles[idx] then 
-					Toggles[idx]:SetValue(data.value)
+				if XSIToggles[idx] then 
+					XSIToggles[idx]:SetValue(data.value)
 				end
 			end,
 		},
+		
 		Slider = {
 			Save = function(idx, object)
-				return { type = 'Slider', idx = idx, value = tostring(object.Value) }
+				return { type = 'Slider', idx = idx, value = tostring(object:GetValue()) }
 			end,
 			Load = function(idx, data)
-				if Options[idx] then 
-					Options[idx]:SetValue(data.value)
+				if XSISliders[idx] then 
+					XSISliders[idx]:SetValue(data.value)
 				end
 			end,
 		},
-		Dropdown = {
-			Save = function(idx, object)
-				return { type = 'Dropdown', idx = idx, value = object.Value, mutli = object.Multi }
-			end,
-			Load = function(idx, data)
-				if Options[idx] then 
-					Options[idx]:SetValue(data.value)
-				end
-			end,
-		},
+		
 		ColorPicker = {
 			Save = function(idx, object)
-				return { type = 'ColorPicker', idx = idx, value = object.Value:ToHex(), transparency = object.Transparency }
+				return { type = 'ColorPicker', idx = idx, value = object:GetValue():ToHex() }
 			end,
 			Load = function(idx, data)
-				if Options[idx] then 
-					Options[idx]:SetValueRGB(Color3.fromHex(data.value), data.transparency)
-				end
-			end,
-		},
-		KeyPicker = {
-			Save = function(idx, object)
-				return { type = 'KeyPicker', idx = idx, mode = object.Mode, key = object.Value }
-			end,
-			Load = function(idx, data)
-				if Options[idx] then 
-					Options[idx]:SetValue({ data.key, data.mode })
+				if XSIColorPickers[idx] then 
+					XSIColorPickers[idx]:SetValue(Color3.fromHex(data.value))
 				end
 			end,
 		},
 
 		Input = {
 			Save = function(idx, object)
-				return { type = 'Input', idx = idx, text = object.Value }
+				return { type = 'Input', idx = idx, text = object:GetValue() }
 			end,
 			Load = function(idx, data)
-				if Options[idx] and type(data.text) == 'string' then
-					Options[idx]:SetValue(data.text)
+				if XSITextBoxes[idx] and type(data.text) == 'string' then
+					XSITextBoxes[idx]:SetValue(data.text)
 				end
 			end,
 		},
@@ -89,18 +72,32 @@ local SaveManager = {} do
 			objects = {}
 		}
 
-		for idx, toggle in next, Toggles do
+		for idx, toggle in next, XSIToggles do
 			if self.Ignore[idx] then continue end
 
 			table.insert(data.objects, self.Parser[toggle.Type].Save(idx, toggle))
 		end
 
-		for idx, option in next, Options do
+		for idx, option in next, XSISliders do
 			if not self.Parser[option.Type] then continue end
 			if self.Ignore[idx] then continue end
 
 			table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
-		end	
+		end
+		
+		for idx, option in next, XSIColorPickers do
+			if not self.Parser[option.Type] then continue end
+			if self.Ignore[idx] then continue end
+
+			table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
+		end
+		
+		for idx, option in next, XSITextBoxes do
+			if not self.Parser[option.Type] then continue end
+			if self.Ignore[idx] then continue end
+
+			table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
+		end
 
 		local success, encoded = pcall(httpService.JSONEncode, httpService, data)
 		if not success then
@@ -115,7 +112,7 @@ local SaveManager = {} do
 		if (not name) then
 			return false, 'no config file is selected'
 		end
-		
+
 		local file = self.Folder .. '/settings/' .. name .. '.json'
 		if not isfile(file) then return false, 'invalid file' end
 
@@ -176,7 +173,7 @@ local SaveManager = {} do
 				end
 			end
 		end
-		
+
 		return out
 	end
 
